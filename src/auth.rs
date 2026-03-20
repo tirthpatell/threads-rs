@@ -266,12 +266,19 @@ impl Client {
     }
 
     /// Validate the current token and auto-refresh if expired.
+    ///
+    /// Only attempts a refresh when the token exists but has expired.
+    /// Returns the original error for other failures (no token, empty token).
     pub async fn ensure_valid_token(&self) -> crate::Result<()> {
         match self.validate_token().await {
             Ok(()) => Ok(()),
-            Err(_) => {
-                // Attempt refresh
-                self.refresh_token().await
+            Err(e) => {
+                // Only refresh if we have a token that expired
+                if self.is_token_expired().await && self.get_token_info().await.is_some() {
+                    self.refresh_token().await
+                } else {
+                    Err(e)
+                }
             }
         }
     }
