@@ -131,8 +131,8 @@ impl RateLimiter {
                 if inner.consecutive_rate_limits > 1 {
                     let base_delay = Duration::from_secs(1);
                     let exponent = (inner.consecutive_rate_limits - 1).min(10);
-                    let backoff_secs = base_delay.as_secs_f64()
-                        * inner.backoff_multiplier.powi(exponent as i32);
+                    let backoff_secs =
+                        base_delay.as_secs_f64() * inner.backoff_multiplier.powi(exponent as i32);
                     let backoff = Duration::from_secs_f64(backoff_secs);
                     if backoff > wait_time {
                         wait_time = backoff;
@@ -165,6 +165,10 @@ impl RateLimiter {
     }
 
     /// Updates rate limit state from API response headers.
+    ///
+    /// A successful response (with rate limit headers) confirms the client
+    /// is no longer in a consecutive rate-limit run, so the backoff counter
+    /// is reset.
     pub async fn update_from_headers(&self, info: &RateLimitInfo) {
         let mut inner = self.inner.write().await;
         if info.limit > 0 {
@@ -174,6 +178,9 @@ impl RateLimiter {
         if info.reset > Utc::now() {
             inner.reset_time = info.reset;
         }
+        // A successful response means we are no longer in a consecutive rate-limit run.
+        inner.rate_limited = false;
+        inner.consecutive_rate_limits = 0;
         tracing::debug!(
             limit = info.limit,
             remaining = info.remaining,
