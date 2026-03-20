@@ -93,7 +93,7 @@ pub fn validate_text_attachment(attachment: &TextAttachment) -> crate::Result<()
 
     if let Some(ref styles) = attachment.text_with_styling_info {
         for (i, info) in styles.iter().enumerate() {
-            let end = info.offset + info.length;
+            let end = info.offset.saturating_add(info.length);
             if end > char_count {
                 return Err(new_validation_error(
                     400,
@@ -113,7 +113,7 @@ pub fn validate_text_attachment(attachment: &TextAttachment) -> crate::Result<()
 
 /// Validate text entities: at most `MAX_TEXT_ENTITIES`, each must be SPOILER
 /// type, and offsets must be non-negative (enforced by `usize`).
-pub fn validate_text_entities(entities: &[TextEntity]) -> crate::Result<()> {
+pub fn validate_text_entities(entities: &[TextEntity], text_char_count: usize) -> crate::Result<()> {
     if entities.len() > MAX_TEXT_ENTITIES {
         return Err(new_validation_error(
             400,
@@ -144,6 +144,19 @@ pub fn validate_text_entities(entities: &[TextEntity]) -> crate::Result<()> {
                 400,
                 &format!("text_entities[{i}] has zero length"),
                 "invalid entity length",
+                "text_entities",
+            ));
+        }
+
+        let end = entity.offset.saturating_add(entity.length);
+        if end > text_char_count {
+            return Err(new_validation_error(
+                400,
+                &format!(
+                    "text_entities[{i}] range ({}..{end}) exceeds text length ({text_char_count})",
+                    entity.offset,
+                ),
+                "entity range out of bounds",
                 "text_entities",
             ));
         }
@@ -437,12 +450,12 @@ mod tests {
             offset: 0,
             length: 5,
         }];
-        assert!(validate_text_entities(&entities).is_ok());
+        assert!(validate_text_entities(&entities, 100).is_ok());
     }
 
     #[test]
     fn text_entities_empty_ok() {
-        assert!(validate_text_entities(&[]).is_ok());
+        assert!(validate_text_entities(&[], 0).is_ok());
     }
 
     #[test]
@@ -454,7 +467,7 @@ mod tests {
                 length: 1,
             })
             .collect();
-        assert!(validate_text_entities(&entities).is_err());
+        assert!(validate_text_entities(&entities, 100).is_err());
     }
 
     #[test]
@@ -464,7 +477,7 @@ mod tests {
             offset: 0,
             length: 5,
         }];
-        assert!(validate_text_entities(&entities).is_err());
+        assert!(validate_text_entities(&entities, 100).is_err());
     }
 
     #[test]
@@ -474,7 +487,17 @@ mod tests {
             offset: 0,
             length: 0,
         }];
-        assert!(validate_text_entities(&entities).is_err());
+        assert!(validate_text_entities(&entities, 100).is_err());
+    }
+
+    #[test]
+    fn text_entities_out_of_bounds() {
+        let entities = vec![TextEntity {
+            entity_type: "SPOILER".into(),
+            offset: 8,
+            length: 5,
+        }];
+        assert!(validate_text_entities(&entities, 10).is_err());
     }
 
     // --- validate_media_url ---

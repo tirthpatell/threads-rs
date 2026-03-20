@@ -281,26 +281,31 @@ impl Default for MemoryTokenStorage {
 
 impl TokenStorage for MemoryTokenStorage {
     fn store(&self, token: &TokenInfo) -> crate::Result<()> {
-        *self.token.lock().unwrap() = Some(token.clone());
+        let mut guard = self.token.lock().map_err(|_| {
+            error::new_authentication_error(500, "Token storage lock poisoned", "")
+        })?;
+        *guard = Some(token.clone());
         Ok(())
     }
 
     fn load(&self) -> crate::Result<TokenInfo> {
-        self.token
-            .lock()
-            .unwrap()
-            .clone()
-            .ok_or_else(|| {
-                error::new_authentication_error(
-                    401,
-                    "No token stored",
-                    "Token not found in memory storage",
-                )
-            })
+        let guard = self.token.lock().map_err(|_| {
+            error::new_authentication_error(500, "Token storage lock poisoned", "")
+        })?;
+        guard.clone().ok_or_else(|| {
+            error::new_authentication_error(
+                401,
+                "No token stored",
+                "Token not found in memory storage",
+            )
+        })
     }
 
     fn delete(&self) -> crate::Result<()> {
-        *self.token.lock().unwrap() = None;
+        let mut guard = self.token.lock().map_err(|_| {
+            error::new_authentication_error(500, "Token storage lock poisoned", "")
+        })?;
+        *guard = None;
         Ok(())
     }
 }

@@ -47,7 +47,7 @@ impl Client {
             content.link_attachment.as_deref().unwrap_or(""),
         )?;
         if let Some(ref entities) = content.text_entities {
-            validation::validate_text_entities(entities)?;
+            validation::validate_text_entities(entities, content.text.chars().count())?;
         }
         if let Some(ref attachment) = content.text_attachment {
             validation::validate_text_attachment(attachment)?;
@@ -101,7 +101,8 @@ impl Client {
             validation::validate_text_length(text, "text")?;
         }
         if let Some(ref entities) = content.text_entities {
-            validation::validate_text_entities(entities)?;
+            let text_len = content.text.as_deref().map_or(0, |t| t.chars().count());
+            validation::validate_text_entities(entities, text_len)?;
         }
         if let Some(ref tag) = content.topic_tag {
             validation::validate_topic_tag(tag)?;
@@ -142,7 +143,8 @@ impl Client {
             validation::validate_text_length(text, "text")?;
         }
         if let Some(ref entities) = content.text_entities {
-            validation::validate_text_entities(entities)?;
+            let text_len = content.text.as_deref().map_or(0, |t| t.chars().count());
+            validation::validate_text_entities(entities, text_len)?;
         }
         if let Some(ref tag) = content.topic_tag {
             validation::validate_topic_tag(tag)?;
@@ -186,7 +188,8 @@ impl Client {
             validation::validate_text_length(text, "text")?;
         }
         if let Some(ref entities) = content.text_entities {
-            validation::validate_text_entities(entities)?;
+            let text_len = content.text.as_deref().map_or(0, |t| t.chars().count());
+            validation::validate_text_entities(entities, text_len)?;
         }
         if let Some(ref tag) = content.topic_tag {
             validation::validate_topic_tag(tag)?;
@@ -300,15 +303,17 @@ impl Client {
         resp.json()
     }
 
-    /// Poll container status until it is FINISHED, ERROR, or EXPIRED.
+    /// Poll container status until it is FINISHED/PUBLISHED, ERROR, or EXPIRED.
     async fn wait_for_container_ready(
         &self,
         container_id: &ContainerId,
     ) -> crate::Result<()> {
-        for _ in 0..constants::DEFAULT_CONTAINER_POLL_MAX_ATTEMPTS {
+        for attempt in 0..constants::DEFAULT_CONTAINER_POLL_MAX_ATTEMPTS {
             let status = self.get_container_status(container_id).await?;
 
-            if status.status == constants::CONTAINER_STATUS_FINISHED {
+            if status.status == constants::CONTAINER_STATUS_FINISHED
+                || status.status == constants::CONTAINER_STATUS_PUBLISHED
+            {
                 return Ok(());
             }
 
@@ -328,7 +333,10 @@ impl Client {
                 ));
             }
 
-            tokio::time::sleep(constants::DEFAULT_CONTAINER_POLL_INTERVAL).await;
+            // Don't sleep after the last attempt
+            if attempt < constants::DEFAULT_CONTAINER_POLL_MAX_ATTEMPTS - 1 {
+                tokio::time::sleep(constants::DEFAULT_CONTAINER_POLL_INTERVAL).await;
+            }
         }
 
         Err(error::new_api_error(

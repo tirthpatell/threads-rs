@@ -69,10 +69,10 @@ impl Response {
                     "Received non-JSON response: {}",
                     &trimmed[..trimmed
                         .char_indices()
-                        .map(|(i, _)| i)
-                        .take_while(|&i| i <= 200)
+                        .map(|(i, c)| i + c.len_utf8())
+                        .take_while(|&end| end <= 200)
                         .last()
-                        .unwrap_or(0)]
+                        .unwrap_or(trimmed.len().min(200))]
                 ),
                 &self.request_id,
             ));
@@ -346,24 +346,21 @@ impl HttpClient {
 
     /// Parse rate limit info from response headers.
     fn parse_rate_limit_headers(headers: &HeaderMap) -> Option<RateLimitInfo> {
-        let limit = headers
+        let limit_header = headers
             .get("x-ratelimit-limit")
             .and_then(|v| v.to_str().ok())
-            .and_then(|v| v.parse::<u32>().ok())
-            .unwrap_or(0);
+            .and_then(|v| v.parse::<u32>().ok());
 
-        let remaining = headers
+        let remaining_header = headers
             .get("x-ratelimit-remaining")
             .and_then(|v| v.to_str().ok())
-            .and_then(|v| v.parse::<u32>().ok())
-            .unwrap_or(0);
+            .and_then(|v| v.parse::<u32>().ok());
 
-        let reset = headers
+        let reset_header = headers
             .get("x-ratelimit-reset")
             .and_then(|v| v.to_str().ok())
             .and_then(|v| v.parse::<i64>().ok())
-            .and_then(|ts| DateTime::from_timestamp(ts, 0))
-            .unwrap_or(DateTime::UNIX_EPOCH);
+            .and_then(|ts| DateTime::from_timestamp(ts, 0));
 
         let retry_after = headers
             .get("retry-after")
@@ -371,15 +368,15 @@ impl HttpClient {
             .and_then(|v| v.parse::<u64>().ok())
             .map(Duration::from_secs);
 
-        // No rate limit headers present
-        if limit == 0 && remaining == 0 && reset == DateTime::UNIX_EPOCH {
+        // Only return info if at least one rate limit header was present
+        if limit_header.is_none() && remaining_header.is_none() && reset_header.is_none() && retry_after.is_none() {
             return None;
         }
 
         Some(RateLimitInfo {
-            limit,
-            remaining,
-            reset,
+            limit: limit_header.unwrap_or(0),
+            remaining: remaining_header.unwrap_or(0),
+            reset: reset_header.unwrap_or(DateTime::UNIX_EPOCH),
             retry_after,
         })
     }
@@ -428,10 +425,10 @@ impl HttpClient {
         let details = if details.len() > 500 {
             let end = details
                 .char_indices()
-                .map(|(i, _)| i)
-                .take_while(|&i| i <= 500)
+                .map(|(i, c)| i + c.len_utf8())
+                .take_while(|&end| end <= 500)
                 .last()
-                .unwrap_or(0);
+                .unwrap_or(details.len().min(500));
             format!("{}...", &details[..end])
         } else {
             details.into_owned()
