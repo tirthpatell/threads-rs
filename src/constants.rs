@@ -59,7 +59,8 @@ pub const POST_EXTENDED_FIELDS: &str = "id,media_product_type,media_type,media_u
 
 pub const GHOST_POST_FIELDS: &str = "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,ghost_post_status,ghost_post_expiration_timestamp";
 
-pub const USER_PROFILE_FIELDS: &str = "id,username,name,threads_profile_picture_url,threads_biography,is_verified";
+pub const USER_PROFILE_FIELDS: &str =
+    "id,username,name,threads_profile_picture_url,threads_biography,is_verified";
 
 pub const REPLY_FIELDS: &str = "id,media_product_type,media_type,media_url,permalink,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,root_post,replied_to,is_reply,is_reply_owned_by_me,reply_audience,quoted_post,reposted_post,gif_url,alt_text,hide_status,topic_tag,is_verified,profile_picture_url,reply_approval_status";
 
