@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use super::ids::{ContainerId, PostId, UserId};
 use super::time::ThreadsTime;
 
 /// Controls who can reply to a post.
@@ -133,7 +134,7 @@ pub struct GifAttachment {
 /// Owner of a post.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PostOwner {
-    pub id: String,
+    pub id: UserId,
 }
 
 /// Children data for carousel posts.
@@ -145,13 +146,13 @@ pub struct ChildrenData {
 /// A child post in a carousel.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChildPost {
-    pub id: String,
+    pub id: PostId,
 }
 
 /// Status of a media container.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContainerStatus {
-    pub id: String,
+    pub id: ContainerId,
     pub status: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub error_message: Option<String>,
@@ -160,7 +161,7 @@ pub struct ContainerStatus {
 /// Content for creating a repost.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RepostContent {
-    pub post_id: String,
+    pub post_id: PostId,
 }
 
 /// Quota configuration for a specific operation type.
@@ -250,7 +251,7 @@ mod tests {
     #[test]
     fn test_container_status_serde() {
         let cs = ContainerStatus {
-            id: "123".into(),
+            id: ContainerId::from("123"),
             status: "FINISHED".into(),
             error_message: None,
         };

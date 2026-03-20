@@ -42,7 +42,7 @@ pub const MIN_SEARCH_TIMESTAMP: i64 = 1_688_540_400;
 
 // --- Library version ---
 
-pub const VERSION: &str = "1.1.0";
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // --- HTTP client defaults ---
 

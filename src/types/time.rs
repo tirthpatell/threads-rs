@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset, Utc};
+use chrono::{DateTime, Utc};
 use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 
@@ -44,16 +44,6 @@ impl<'de> Deserialize<'de> for ThreadsTime {
 
         // RFC 3339
         if let Ok(dt) = DateTime::parse_from_rfc3339(&s) {
-            return Ok(ThreadsTime(dt.with_timezone(&Utc)));
-        }
-
-        // With timezone offset: "2006-01-02T15:04:05-0700"
-        if let Ok(dt) = DateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M:%S%z") {
-            return Ok(ThreadsTime(dt.with_timezone(&Utc)));
-        }
-
-        // Fallback: try chrono's flexible parsing
-        if let Ok(dt) = DateTime::<FixedOffset>::parse_from_rfc3339(&s) {
             return Ok(ThreadsTime(dt.with_timezone(&Utc)));
         }
 

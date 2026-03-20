@@ -1,20 +1,21 @@
 use serde::{Deserialize, Serialize};
 
 use super::common::{
-    ChildrenData, GifAttachment, PollAttachment, PollResult, PostOwner, ReplyControl, TextAttachment,
-    TextEntity,
+    ChildrenData, GifAttachment, MediaType, PollAttachment, PollResult, PostOwner, ReplyControl,
+    TextAttachment, TextEntity,
 };
+use super::ids::PostId;
 use super::pagination::Paging;
 use super::time::ThreadsTime;
 
 /// A Threads post with all metadata and content.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Post {
-    pub id: String,
+    pub id: PostId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub text: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub media_type: Option<String>,
+    pub media_type: Option<MediaType>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub media_url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

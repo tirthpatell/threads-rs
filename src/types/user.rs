@@ -1,17 +1,19 @@
 use serde::{Deserialize, Serialize};
 
+use super::ids::UserId;
+
 /// A Threads user profile with app-scoped data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub id: String,
+    pub id: UserId,
     pub username: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
     /// Maps to `threads_profile_picture_url` in the API.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "threads_profile_picture_url")]
     pub profile_pic_url: Option<String>,
     /// Maps to `threads_biography` in the API.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "threads_biography")]
     pub biography: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub website: Option<String>,
