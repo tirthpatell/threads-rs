@@ -130,6 +130,10 @@ impl Client {
     pub async fn get_app_access_token(&self) -> crate::Result<AppAccessTokenResponse> {
         let cfg = self.config();
 
+        // SECURITY: The Graph API requires client_secret as a query parameter for
+        // app access token requests (GET /oauth/access_token). This means the secret
+        // appears in server/proxy access logs. Always use HTTPS and ensure log access
+        // is restricted.
         let mut params = HashMap::new();
         params.insert("client_id".into(), cfg.client_id.clone());
         params.insert("client_secret".into(), cfg.client_secret.clone());

@@ -6,9 +6,9 @@ use crate::types::PostId;
 /// Response from the delete post endpoint.
 #[derive(Debug, serde::Deserialize)]
 struct DeleteResponse {
-    /// Whether the delete was successful.
+    /// Whether the delete was successful. `None` when the field is absent.
     #[serde(default)]
-    success: bool,
+    success: Option<bool>,
     /// The deleted post's ID.
     #[serde(default)]
     deleted_id: Option<String>,
@@ -31,7 +31,7 @@ impl Client {
         let resp = self.http_client.delete(&path, &token).await?;
 
         if let Ok(del_resp) = serde_json::from_slice::<DeleteResponse>(&resp.body) {
-            if !del_resp.success {
+            if del_resp.success == Some(false) {
                 return Err(error::new_api_error(
                     0,
                     "Delete request returned success=false",
