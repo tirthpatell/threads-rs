@@ -55,6 +55,9 @@ impl Client {
         if let Some(ref gif) = content.gif_attachment {
             validation::validate_gif_attachment(gif)?;
         }
+        if let Some(ref poll) = content.poll_attachment {
+            validation::validate_poll_attachment(poll)?;
+        }
         if let Some(ref tag) = content.topic_tag {
             validation::validate_topic_tag(tag)?;
         }
@@ -97,6 +100,9 @@ impl Client {
         }
 
         validation::validate_media_url(&content.image_url, "image")?;
+        if let Some(ref alt) = content.alt_text {
+            validation::validate_alt_text(alt)?;
+        }
         if let Some(ref text) = content.text {
             validation::validate_text_length(text, "text")?;
         }
@@ -139,6 +145,9 @@ impl Client {
         }
 
         validation::validate_media_url(&content.video_url, "video")?;
+        if let Some(ref alt) = content.alt_text {
+            validation::validate_alt_text(alt)?;
+        }
         if let Some(ref text) = content.text {
             validation::validate_text_length(text, "text")?;
         }
