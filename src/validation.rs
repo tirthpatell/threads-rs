@@ -37,8 +37,9 @@ pub fn validate_limit(limit: Option<usize>) -> crate::Result<()> {
 
 /// Validate that `text` does not exceed `MAX_TEXT_LENGTH` characters.
 ///
-/// Per the API docs, emojis are counted by their UTF-8 byte length rather than
-/// as single characters. Non-emoji characters count as 1 each.
+/// Per the API docs, non-ASCII characters (emojis, CJK, accented Latin, etc.)
+/// are counted by their UTF-8 byte length rather than as single characters.
+/// ASCII characters count as 1 each.
 pub fn validate_text_length(text: &str, field_name: &str) -> crate::Result<()> {
     let count = text_length_with_emoji_bytes(text);
     if count > MAX_TEXT_LENGTH {
@@ -54,13 +55,14 @@ pub fn validate_text_length(text: &str, field_name: &str) -> crate::Result<()> {
     Ok(())
 }
 
-/// Count text length where emojis are counted by their UTF-8 byte length
-/// and other characters count as 1.
+/// Count text length where non-ASCII characters are counted by their UTF-8
+/// byte length and ASCII characters count as 1.
 fn text_length_with_emoji_bytes(text: &str) -> usize {
     text.chars()
         .map(|c| {
-            if c.len_utf8() > 1 && !c.is_ascii() {
-                // Multi-byte characters (emojis, CJK, etc.) count as their byte length
+            if c.len_utf8() > 1 {
+                // Non-ASCII characters (emojis, CJK, accented Latin, etc.)
+                // count as their UTF-8 byte length
                 c.len_utf8()
             } else {
                 1
