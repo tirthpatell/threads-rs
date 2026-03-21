@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::client::Client;
 use crate::constants;
 use crate::error;
-use crate::types::PostsResponse;
+use crate::types::{PostsResponse, SearchMode};
 use crate::types::search::SearchOptions;
 use crate::validation;
 
@@ -79,5 +79,18 @@ impl Client {
             .get("/keyword_search", params, &token)
             .await?;
         resp.json()
+    }
+
+    /// Search for posts by hashtag.
+    ///
+    /// Convenience wrapper around `keyword_search` with `search_mode` set to `TAG`.
+    pub async fn hashtag_search(
+        &self,
+        tag: &str,
+        opts: Option<&SearchOptions>,
+    ) -> crate::Result<PostsResponse> {
+        let mut tag_opts = opts.cloned().unwrap_or_default();
+        tag_opts.search_mode = Some(SearchMode::Tag);
+        self.keyword_search(tag, Some(&tag_opts)).await
     }
 }

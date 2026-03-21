@@ -13,18 +13,18 @@ pub struct User {
     /// Display name.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    /// Maps to `threads_profile_picture_url` in the API.
+    /// Profile picture URL. Maps to `threads_profile_picture_url` in the API.
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        alias = "threads_profile_picture_url"
+        rename = "threads_profile_picture_url"
     )]
     pub profile_pic_url: Option<String>,
-    /// Maps to `threads_biography` in the API.
+    /// Biography. Maps to `threads_biography` in the API.
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
-        alias = "threads_biography"
+        rename = "threads_biography"
     )]
     pub biography: Option<String>,
     /// Website URL.
@@ -52,8 +52,9 @@ pub struct User {
 pub struct PublicUser {
     /// Username.
     pub username: String,
-    /// Display name.
-    pub name: String,
+    /// Display name (may be absent on some profiles).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     /// Profile picture URL.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub profile_picture_url: Option<String>,
