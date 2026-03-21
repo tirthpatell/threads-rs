@@ -1,4 +1,4 @@
-# threads-api
+# meta-threads
 
 Rust client library for the [Meta Threads API](https://developers.facebook.com/docs/threads).
 

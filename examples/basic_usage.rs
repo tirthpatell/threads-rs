@@ -1,4 +1,4 @@
-//! Basic usage example for the threads-api crate.
+//! Basic usage example for the meta-threads crate.
 //!
 //! Run with:
 //! ```sh
