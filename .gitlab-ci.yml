@@ -57,3 +57,12 @@ msrv:
     - rustup override set 1.85.0
     - cargo check --lib
     - rustup override unset
+
+audit:
+  stage: check
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - command -v cargo-audit >/dev/null || cargo install cargo-audit --locked
+    - cargo audit
