@@ -71,7 +71,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.85.0
       - uses: Swatinem/rust-cache@v2
-      # Only check lib target — dev-dependencies (wiremock) may require newer Rust
+      # MSRV applies to the library only; dev-dependencies (e.g. wiremock)
+      # are free to require a newer toolchain.
       - run: cargo check --lib
 
   semver:

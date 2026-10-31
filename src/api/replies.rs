@@ -242,6 +242,7 @@ impl Client {
             gif_attachment: None,
             is_ghost_post: false,
             enable_reply_approvals: false,
+            is_made_with_ai: false,
         };
         self.create_text_post(&content).await
     }

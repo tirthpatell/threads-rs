@@ -488,6 +488,9 @@ impl Client {
         if content.enable_reply_approvals {
             params.insert("enable_reply_approvals".into(), "true".into());
         }
+        if content.is_made_with_ai {
+            params.insert("is_made_with_ai".into(), "true".into());
+        }
         if let Some(ref entities) = content.text_entities {
             if let Ok(json) = serde_json::to_string(entities) {
                 params.insert("text_entities".into(), json);
@@ -559,6 +562,9 @@ impl Client {
         if content.enable_reply_approvals {
             params.insert("enable_reply_approvals".into(), "true".into());
         }
+        if content.is_made_with_ai {
+            params.insert("is_made_with_ai".into(), "true".into());
+        }
         if let Some(ref entities) = content.text_entities {
             if let Ok(json) = serde_json::to_string(entities) {
                 params.insert("text_entities".into(), json);
@@ -615,6 +621,9 @@ impl Client {
         if content.enable_reply_approvals {
             params.insert("enable_reply_approvals".into(), "true".into());
         }
+        if content.is_made_with_ai {
+            params.insert("is_made_with_ai".into(), "true".into());
+        }
         if let Some(ref entities) = content.text_entities {
             if let Ok(json) = serde_json::to_string(entities) {
                 params.insert("text_entities".into(), json);
@@ -669,6 +678,9 @@ impl Client {
         if content.enable_reply_approvals {
             params.insert("enable_reply_approvals".into(), "true".into());
         }
+        if content.is_made_with_ai {
+            params.insert("is_made_with_ai".into(), "true".into());
+        }
         if let Some(ref entities) = content.text_entities {
             if let Ok(json) = serde_json::to_string(entities) {
                 params.insert("text_entities".into(), json);
@@ -676,5 +688,59 @@ impl Client {
         }
 
         params
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::client::{Client, Config};
+    use crate::types::{CarouselPostContent, ImagePostContent, TextPostContent, VideoPostContent};
+
+    async fn client() -> Client {
+        Client::new(Config::new("id", "secret", "https://example.com/cb"))
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_is_made_with_ai_param() {
+        let c = client().await;
+
+        let text = TextPostContent {
+            text: "hi".into(),
+            is_made_with_ai: true,
+            ..Default::default()
+        };
+        let image = ImagePostContent {
+            image_url: "https://example.com/a.jpg".into(),
+            is_made_with_ai: true,
+            ..Default::default()
+        };
+        let video = VideoPostContent {
+            video_url: "https://example.com/a.mp4".into(),
+            is_made_with_ai: true,
+            ..Default::default()
+        };
+        let carousel = CarouselPostContent {
+            children: vec!["1".into(), "2".into()],
+            is_made_with_ai: true,
+            ..Default::default()
+        };
+
+        for params in [
+            c.build_text_params(&text, "1"),
+            c.build_image_params(&image, "1"),
+            c.build_video_params(&video, "1"),
+            c.build_carousel_params(&carousel, "1"),
+        ] {
+            assert_eq!(
+                params.get("is_made_with_ai").map(String::as_str),
+                Some("true")
+            );
+        }
+
+        // Unset flag must not send the param at all.
+        let plain = c.build_image_params(&ImagePostContent::default(), "1");
+        assert!(!plain.contains_key("is_made_with_ai"));
     }
 }

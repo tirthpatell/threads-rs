@@ -208,6 +208,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gif_attachment: None,
         is_ghost_post: false,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_text_post(&content).await {
         Ok(post) => {
@@ -240,6 +241,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gif_attachment: None,
         is_ghost_post: false,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_text_post(&content).await {
         Ok(post) => {
@@ -266,6 +268,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         text_entities: None,
         is_spoiler_media: false,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_image_post(&content).await {
         Ok(post) => {
@@ -292,6 +295,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         quoted_post_id: None,
         text_entities: None,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_image_post(&content).await {
         Ok(post) => {
@@ -321,6 +325,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gif_attachment: None,
         is_ghost_post: false,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_text_post(&original).await {
         Ok(orig_post) => {
@@ -376,6 +381,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 text_entities: None,
                 is_spoiler_media: false,
                 enable_reply_approvals: false,
+                is_made_with_ai: false,
             };
             match client.create_carousel_post(&content).await {
                 Ok(post) => {
@@ -407,6 +413,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gif_attachment: None,
         is_ghost_post: false,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_text_post(&original).await {
         Ok(orig_post) => {
@@ -446,6 +453,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gif_attachment: None,
         is_ghost_post: false,
         enable_reply_approvals: false,
+        is_made_with_ai: false,
     };
     match client.create_text_post(&original).await {
         Ok(orig_post) => {

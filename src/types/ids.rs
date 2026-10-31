@@ -2,6 +2,20 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::ops::Deref;
 
+/// Reports whether `s` can be safely embedded as a single URL path segment.
+///
+/// Threads resource IDs are opaque, but the API only issues IDs made of RFC
+/// 3986 unreserved characters. Restricting IDs to that set prevents a
+/// caller-supplied ID from adding a path, query, or fragment to an
+/// authenticated request (e.g. `"123/../me"` or `"123?fields=..."`).
+fn valid_resource_id(s: &str) -> bool {
+    if s.is_empty() || s == "." || s == ".." {
+        return false;
+    }
+    s.bytes()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'-' | b'.' | b'_' | b'~'))
+}
+
 macro_rules! id_newtype {
     ($(#[$meta:meta])* $name:ident) => {
         $(#[$meta])*
@@ -10,9 +24,10 @@ macro_rules! id_newtype {
         pub struct $name(pub String);
 
         impl $name {
-            /// Returns `true` if the ID is non-empty.
+            /// Returns `true` if the ID is non-empty and safe to use as a
+            /// URL path segment.
             pub fn is_valid(&self) -> bool {
-                !self.0.is_empty()
+                valid_resource_id(&self.0)
             }
         }
 
@@ -84,6 +99,40 @@ mod tests {
     fn test_post_id_invalid() {
         let id = PostId::from("");
         assert!(!id.is_valid());
+    }
+
+    #[test]
+    fn test_id_rejects_path_injection() {
+        for bad in [
+            ".",
+            "..",
+            "123/../me",
+            "123/replies",
+            "123?fields=id",
+            "123#frag",
+            "123%2F",
+            "12 3",
+            "123\n",
+            "ü123",
+        ] {
+            assert!(!PostId::from(bad).is_valid(), "{bad:?} must be rejected");
+            assert!(!UserId::from(bad).is_valid(), "{bad:?} must be rejected");
+            assert!(
+                !ContainerId::from(bad).is_valid(),
+                "{bad:?} must be rejected"
+            );
+            assert!(
+                !LocationId::from(bad).is_valid(),
+                "{bad:?} must be rejected"
+            );
+        }
+    }
+
+    #[test]
+    fn test_id_accepts_unreserved_chars() {
+        for good in ["17841400000000000", "abc-DEF_1.2~3", "me"] {
+            assert!(PostId::from(good).is_valid(), "{good:?} must be accepted");
+        }
     }
 
     #[test]

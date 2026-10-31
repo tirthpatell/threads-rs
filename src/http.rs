@@ -305,7 +305,12 @@ impl HttpClient {
             .bytes()
             .await
             .map_err(|e| {
-                error::new_network_error(0, "Failed to read response body", &e.to_string(), false)
+                error::new_network_error(
+                    0,
+                    "Failed to read response body",
+                    &e.without_url().to_string(),
+                    false,
+                )
             })?
             .to_vec();
 
@@ -565,7 +570,13 @@ impl HttpClient {
     }
 
     /// Wrap a reqwest error into our typed errors.
+    ///
+    /// The request URL is stripped from the error first: reqwest embeds it in
+    /// the error's `Display` output, and several auth endpoints carry
+    /// `access_token` / `client_secret` as query parameters, which would
+    /// otherwise leak into error messages and logs.
     fn wrap_network_error(&self, err: reqwest::Error) -> Error {
+        let err = err.without_url();
         if err.is_timeout() {
             return error::new_network_error_with_cause(
                 0,
@@ -679,6 +690,33 @@ mod tests {
             rate_limit: None,
             duration: Duration::ZERO,
         }
+    }
+
+    #[tokio::test]
+    async fn test_network_error_does_not_leak_query_secrets() {
+        // Port 1 on loopback refuses connections, producing a connect error
+        // whose reqwest Display would normally include the full URL.
+        let client = HttpClient::new(
+            Duration::from_secs(5),
+            RetryConfig {
+                max_retries: 0,
+                ..RetryConfig::default()
+            },
+            None,
+            Some("http://127.0.0.1:1"),
+            None,
+        )
+        .unwrap();
+        let mut params = HashMap::new();
+        params.insert("client_secret".to_owned(), "SUPER_SECRET".to_owned());
+        params.insert("access_token".to_owned(), "TOKEN_VALUE".to_owned());
+        let err = client
+            .get("/oauth/access_token", params, "")
+            .await
+            .unwrap_err();
+        let rendered = format!("{err} {err:?}");
+        assert!(!rendered.contains("SUPER_SECRET"), "leaked: {rendered}");
+        assert!(!rendered.contains("TOKEN_VALUE"), "leaked: {rendered}");
     }
 
     #[tokio::test]
