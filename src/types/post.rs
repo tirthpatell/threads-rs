@@ -192,6 +192,11 @@ pub struct TextPostContent {
     /// Whether reply approvals are enabled.
     #[serde(default)]
     pub enable_reply_approvals: bool,
+    /// Labels the post as containing AI-generated content (shows the
+    /// "AI info" label). Leaving it `false` adds no self-disclosure but does
+    /// not prevent Meta's automatic AI labeling.
+    #[serde(default)]
+    pub is_made_with_ai: bool,
 }
 
 /// Content for creating an image post.
@@ -236,6 +241,11 @@ pub struct ImagePostContent {
     /// Whether reply approvals are enabled.
     #[serde(default)]
     pub enable_reply_approvals: bool,
+    /// Labels the post as containing AI-generated content (shows the
+    /// "AI info" label). Leaving it `false` adds no self-disclosure but does
+    /// not prevent Meta's automatic AI labeling.
+    #[serde(default)]
+    pub is_made_with_ai: bool,
 }
 
 /// Content for creating a video post.
@@ -280,6 +290,11 @@ pub struct VideoPostContent {
     /// Whether reply approvals are enabled.
     #[serde(default)]
     pub enable_reply_approvals: bool,
+    /// Labels the post as containing AI-generated content (shows the
+    /// "AI info" label). Leaving it `false` adds no self-disclosure but does
+    /// not prevent Meta's automatic AI labeling.
+    #[serde(default)]
+    pub is_made_with_ai: bool,
 }
 
 /// Content for creating a carousel post.
@@ -322,6 +337,11 @@ pub struct CarouselPostContent {
     /// Whether reply approvals are enabled.
     #[serde(default)]
     pub enable_reply_approvals: bool,
+    /// Labels the post as containing AI-generated content (shows the
+    /// "AI info" label). Leaving it `false` adds no self-disclosure but does
+    /// not prevent Meta's automatic AI labeling.
+    #[serde(default)]
+    pub is_made_with_ai: bool,
 }
 
 /// Paginated response containing multiple posts.
